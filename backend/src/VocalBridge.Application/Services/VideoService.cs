@@ -128,9 +128,23 @@ public class VideoService
 
         foreach (var (dto, video) in dtos.Zip(videos))
         {
-            dto.Url = video.SourceType == VideoSourceType.Uploaded && video.StoragePath is not null
-                ? await _storage.GetSignedUrlAsync(video.StoragePath, ct: ct)
-                : video.OriginalVideoUrl;
+            if (video.SourceType == VideoSourceType.Uploaded && video.StoragePath is not null)
+            {
+                try
+                {
+                    dto.Url = await _storage.GetSignedUrlAsync(video.StoragePath, ct: ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Could not generate signed URL for video {VideoId} (path: {Path}): {Message}",
+                        video.Id, video.StoragePath, ex.Message);
+                    dto.Url = null; // File missing from storage — surface gracefully
+                }
+            }
+            else
+            {
+                dto.Url = video.OriginalVideoUrl;
+            }
         }
 
         return Result<List<VideoDto>>.Success(dtos);
@@ -145,9 +159,23 @@ public class VideoService
             return Result<VideoDto>.Failure("Video not found.");
 
         var dto = _mapper.Map<VideoDto>(video);
-        dto.Url = video.SourceType == VideoSourceType.Uploaded && video.StoragePath is not null
-            ? await _storage.GetSignedUrlAsync(video.StoragePath, ct: ct)
-            : video.OriginalVideoUrl;
+        if (video.SourceType == VideoSourceType.Uploaded && video.StoragePath is not null)
+        {
+            try
+            {
+                dto.Url = await _storage.GetSignedUrlAsync(video.StoragePath, ct: ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Could not generate signed URL for video {VideoId} (path: {Path}): {Message}",
+                    video.Id, video.StoragePath, ex.Message);
+                dto.Url = null;
+            }
+        }
+        else
+        {
+            dto.Url = video.OriginalVideoUrl;
+        }
 
         return Result<VideoDto>.Success(dto);
     }

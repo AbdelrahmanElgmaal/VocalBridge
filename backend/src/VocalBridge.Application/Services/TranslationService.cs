@@ -222,10 +222,16 @@ public class TranslationService
         var dto = _mapper.Map<TranslationDto>(job);
 
         if (job.TranslatedVideoPath is not null)
-            dto.TranslatedVideoUrl = await _storage.GetSignedUrlAsync(job.TranslatedVideoPath, ct: ct);
+        {
+            try { dto.TranslatedVideoUrl = await _storage.GetSignedUrlAsync(job.TranslatedVideoPath, ct: ct); }
+            catch (Exception ex) { _logger.LogWarning("Signed URL failed for translated video {JobId}: {Msg}", job.Id, ex.Message); }
+        }
             
         if (job.TranslatedAudioPath is not null)
-            dto.TranslatedAudioUrl = await _storage.GetSignedUrlAsync(job.TranslatedAudioPath, ct: ct);
+        {
+            try { dto.TranslatedAudioUrl = await _storage.GetSignedUrlAsync(job.TranslatedAudioPath, ct: ct); }
+            catch (Exception ex) { _logger.LogWarning("Signed URL failed for translated audio {JobId}: {Msg}", job.Id, ex.Message); }
+        }
 
         return Result<TranslationDto>.Success(dto);
     }
@@ -245,10 +251,16 @@ public class TranslationService
         foreach (var (dto, job) in dtos.Zip(jobs))
         {
             if (job.TranslatedVideoPath is not null)
-                dto.TranslatedVideoUrl = await _storage.GetSignedUrlAsync(job.TranslatedVideoPath, ct: ct);
+            {
+                try { dto.TranslatedVideoUrl = await _storage.GetSignedUrlAsync(job.TranslatedVideoPath, ct: ct); }
+                catch (Exception ex) { _logger.LogWarning("Signed URL failed for translated video {JobId}: {Msg}", job.Id, ex.Message); }
+            }
                 
             if (job.TranslatedAudioPath is not null)
-                dto.TranslatedAudioUrl = await _storage.GetSignedUrlAsync(job.TranslatedAudioPath, ct: ct);
+            {
+                try { dto.TranslatedAudioUrl = await _storage.GetSignedUrlAsync(job.TranslatedAudioPath, ct: ct); }
+                catch (Exception ex) { _logger.LogWarning("Signed URL failed for translated audio {JobId}: {Msg}", job.Id, ex.Message); }
+            }
         }
 
         return Result<List<TranslationDto>>.Success(dtos);
