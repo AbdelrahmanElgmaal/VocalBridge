@@ -62,10 +62,14 @@ export function HistoryGrid({ jobs }: HistoryGridProps) {
   const deleteAudio = useDeleteAudio();
   const cancelTranslation = useCancelTranslation();
   const retryTranslation = useRetryTranslation();
-
-  async function download(url: string | null | undefined, fileName: string, label: string) {
+  async function download(url: string | null | undefined, fileName: string, label: string, isExternal?: boolean) {
     if (!url) return;
     
+    if (isExternal) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
     try {
       await downloadFile(url, fileName);
       toast({ tone: "success", title: "Download Ready", description: `${label} download has started.` });
@@ -165,9 +169,9 @@ export function HistoryGrid({ jobs }: HistoryGridProps) {
                     <ExternalLink className="h-4 w-4" />
                     View Details
                   </Button>
-                  <Button variant="ghost" onClick={() => download(originalUrl, mediaName, "Original media")} disabled={!originalUrl}>
+                  <Button variant="ghost" onClick={() => download(originalUrl, mediaName, "Original media", sourceType === "ExternalUrl")} disabled={!originalUrl}>
                     <Download className="h-4 w-4" />
-                    Original
+                    {sourceType === "ExternalUrl" ? "Open Original" : "Download Original"}
                   </Button>
                   <Button variant="ghost" onClick={() => download(resultUrl, mediaName, "Translated result")} disabled={!resultUrl}>
                     <Download className="h-4 w-4" />

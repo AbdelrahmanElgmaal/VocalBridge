@@ -145,8 +145,17 @@ public class AudioService
             FileSize = audio.FileSize,
             SourceType = audio.SourceType.ToString(),
             CreatedAt = audio.CreatedAt,
-            Url = await _storage.GetSignedUrlAsync(storagePath, ct: ct)
+            Url = null
         };
+
+        try
+        {
+            dto.Url = await _storage.GetSignedUrlAsync(storagePath, ct: ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Signed URL generation failed for audio {AudioId}", audio.Id);
+        }
         
         _logger.LogInformation("[TRACE] Returning AudioDto to controller");
         return Result<AudioDto>.Success(dto);
@@ -168,10 +177,21 @@ public class AudioService
             FileSize = audio.FileSize,
             SourceType = audio.SourceType.ToString(),
             CreatedAt = audio.CreatedAt,
-            Url = audio.StoragePath is not null 
-                ? await _storage.GetSignedUrlAsync(audio.StoragePath, ct: ct)
-                : audio.OriginalAudioUrl
+            Url = audio.OriginalAudioUrl
         };
+
+        if (audio.SourceType == AudioSourceType.Uploaded && audio.StoragePath is not null)
+        {
+            try
+            {
+                dto.Url = await _storage.GetSignedUrlAsync(audio.StoragePath, ct: ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Signed URL generation failed for audio {AudioId}", audio.Id);
+                dto.Url = null;
+            }
+        }
 
         return Result<AudioDto>.Success(dto);
     }
@@ -186,7 +206,7 @@ public class AudioService
         var dtos = new List<AudioDto>();
         foreach (var audio in audios)
         {
-            dtos.Add(new AudioDto
+            var dto = new AudioDto
             {
                 Id = audio.Id,
                 FileName = audio.FileName,
@@ -194,10 +214,23 @@ public class AudioService
                 FileSize = audio.FileSize,
                 SourceType = audio.SourceType.ToString(),
                 CreatedAt = audio.CreatedAt,
-                Url = audio.StoragePath is not null
-                    ? await _storage.GetSignedUrlAsync(audio.StoragePath, ct: ct)
-                    : audio.OriginalAudioUrl
-            });
+                Url = audio.OriginalAudioUrl
+            };
+
+            if (audio.SourceType == AudioSourceType.Uploaded && audio.StoragePath is not null)
+            {
+                try
+                {
+                    dto.Url = await _storage.GetSignedUrlAsync(audio.StoragePath, ct: ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Signed URL generation failed for audio {AudioId}", audio.Id);
+                    dto.Url = null;
+                }
+            }
+
+            dtos.Add(dto);
         }
 
         return Result<List<AudioDto>>.Success(dtos);

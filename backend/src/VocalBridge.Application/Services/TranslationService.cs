@@ -223,14 +223,68 @@ public class TranslationService
 
         if (job.TranslatedVideoPath is not null)
         {
-            try { dto.TranslatedVideoUrl = await _storage.GetSignedUrlAsync(job.TranslatedVideoPath, ct: ct); }
-            catch (Exception ex) { _logger.LogWarning("Signed URL failed for translated video {JobId}: {Msg}", job.Id, ex.Message); }
+            try
+            {
+                dto.TranslatedVideoUrl = await _storage.GetSignedUrlAsync(job.TranslatedVideoPath, ct: ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Signed URL generation failed for translated video {JobId}", job.Id);
+                dto.TranslatedVideoUrl = null;
+            }
         }
             
         if (job.TranslatedAudioPath is not null)
         {
-            try { dto.TranslatedAudioUrl = await _storage.GetSignedUrlAsync(job.TranslatedAudioPath, ct: ct); }
-            catch (Exception ex) { _logger.LogWarning("Signed URL failed for translated audio {JobId}: {Msg}", job.Id, ex.Message); }
+            try
+            {
+                dto.TranslatedAudioUrl = await _storage.GetSignedUrlAsync(job.TranslatedAudioPath, ct: ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Signed URL generation failed for translated audio {JobId}", job.Id);
+                dto.TranslatedAudioUrl = null;
+            }
+        }
+
+        if (job.Video != null && dto.Video != null)
+        {
+            if (job.Video.SourceType == VideoSourceType.Uploaded && job.Video.StoragePath != null)
+            {
+                try
+                {
+                    dto.Video.Url = await _storage.GetSignedUrlAsync(job.Video.StoragePath, ct: ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Signed URL generation failed for video {VideoId}", job.Video.Id);
+                    dto.Video.Url = null;
+                }
+            }
+            else if (job.Video.SourceType == VideoSourceType.ExternalUrl && job.Video.OriginalVideoUrl != null)
+            {
+                dto.Video.Url = job.Video.OriginalVideoUrl;
+            }
+        }
+
+        if (job.Audio != null && dto.Audio != null)
+        {
+            if (job.Audio.SourceType == AudioSourceType.Uploaded && job.Audio.StoragePath != null)
+            {
+                try
+                {
+                    dto.Audio.Url = await _storage.GetSignedUrlAsync(job.Audio.StoragePath, ct: ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Signed URL generation failed for audio {AudioId}", job.Audio.Id);
+                    dto.Audio.Url = null;
+                }
+            }
+            else if (job.Audio.OriginalAudioUrl != null)
+            {
+                dto.Audio.Url = job.Audio.OriginalAudioUrl;
+            }
         }
 
         return Result<TranslationDto>.Success(dto);
@@ -252,14 +306,68 @@ public class TranslationService
         {
             if (job.TranslatedVideoPath is not null)
             {
-                try { dto.TranslatedVideoUrl = await _storage.GetSignedUrlAsync(job.TranslatedVideoPath, ct: ct); }
-                catch (Exception ex) { _logger.LogWarning("Signed URL failed for translated video {JobId}: {Msg}", job.Id, ex.Message); }
+                try
+                {
+                    dto.TranslatedVideoUrl = await _storage.GetSignedUrlAsync(job.TranslatedVideoPath, ct: ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Signed URL generation failed for translated video {JobId}", job.Id);
+                    dto.TranslatedVideoUrl = null;
+                }
             }
                 
             if (job.TranslatedAudioPath is not null)
             {
-                try { dto.TranslatedAudioUrl = await _storage.GetSignedUrlAsync(job.TranslatedAudioPath, ct: ct); }
-                catch (Exception ex) { _logger.LogWarning("Signed URL failed for translated audio {JobId}: {Msg}", job.Id, ex.Message); }
+                try
+                {
+                    dto.TranslatedAudioUrl = await _storage.GetSignedUrlAsync(job.TranslatedAudioPath, ct: ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Signed URL generation failed for translated audio {JobId}", job.Id);
+                    dto.TranslatedAudioUrl = null;
+                }
+            }
+
+            if (job.Video != null && dto.Video != null)
+            {
+                if (job.Video.SourceType == VideoSourceType.Uploaded && job.Video.StoragePath != null)
+                {
+                    try
+                    {
+                        dto.Video.Url = await _storage.GetSignedUrlAsync(job.Video.StoragePath, ct: ct);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Signed URL generation failed for video {VideoId}", job.Video.Id);
+                        dto.Video.Url = null;
+                    }
+                }
+                else if (job.Video.SourceType == VideoSourceType.ExternalUrl && job.Video.OriginalVideoUrl != null)
+                {
+                    dto.Video.Url = job.Video.OriginalVideoUrl;
+                }
+            }
+
+            if (job.Audio != null && dto.Audio != null)
+            {
+                if (job.Audio.SourceType == AudioSourceType.Uploaded && job.Audio.StoragePath != null)
+                {
+                    try
+                    {
+                        dto.Audio.Url = await _storage.GetSignedUrlAsync(job.Audio.StoragePath, ct: ct);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Signed URL generation failed for audio {AudioId}", job.Audio.Id);
+                        dto.Audio.Url = null;
+                    }
+                }
+                else if (job.Audio.OriginalAudioUrl != null)
+                {
+                    dto.Audio.Url = job.Audio.OriginalAudioUrl;
+                }
             }
         }
 
@@ -428,7 +536,7 @@ public class TranslationService
             }
             else
             {
-                if (audio!.StoragePath is not null)
+                if (!string.IsNullOrWhiteSpace(audio!.StoragePath))
                 {
                     _logger.LogInformation("TRACE Generating signed URL for audio job. JobId={JobId}, StoragePath={StoragePath}", job.Id, audio.StoragePath);
                     urlForAi = await _storage.GetSignedUrlAsync(audio.StoragePath, expiresInSeconds: 7200, ct: ct);

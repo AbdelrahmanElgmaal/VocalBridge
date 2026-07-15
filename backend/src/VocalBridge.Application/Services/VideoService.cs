@@ -83,7 +83,15 @@ public class VideoService
         _logger.LogInformation("Video uploaded: {VideoId} → {StoragePath}", video.Id, storagePath);
 
         var dto = _mapper.Map<VideoDto>(video);
-        dto.Url = await _storage.GetSignedUrlAsync(storagePath, ct: ct);
+        try
+        {
+            dto.Url = await _storage.GetSignedUrlAsync(storagePath, ct: ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Signed URL generation failed for video {VideoId}", video.Id);
+            dto.Url = null;
+        }
         return Result<VideoDto>.Success(dto);
     }
 
