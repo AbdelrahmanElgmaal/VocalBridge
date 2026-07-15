@@ -111,7 +111,16 @@ export function TranslationDetailsPage() {
   const status = normalizeStatus(job?.status);
   const progress = Math.round(job?.progress ?? 0);
   const currentStage = job?.currentStage ?? null;
-  const stages = isAudio ? audioStages : videoStages;
+  
+  const videoStagesDynamic = job?.enableLipsync
+    ? [
+        ...videoStages.slice(0, 5),
+        { key: "lip_sync", title: "Lip Sync (Wav2Lip)", description: "Synchronize the translated voice with the speaker's lip movements.", icon: Film, threshold: 98 },
+        videoStages[5]
+      ]
+    : videoStages;
+
+  const stages = isAudio ? audioStages : videoStagesDynamic;
   const active = isActiveStatus(job?.status);
   const failed = isStatus(job?.status, "Failed");
   const cancelled = isStatus(job?.status, "Cancelled");

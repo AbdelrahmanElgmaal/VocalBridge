@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { AppShell } from "../components/layout/AppShell";
 import { HistoryGrid } from "../components/history/HistoryGrid";
@@ -29,11 +29,14 @@ const sorts: { value: HistorySort; label: string }[] = [
 ];
 
 export function HistoryPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const translations = useTranslations(true);
 
+  const routeState = location.state as { filter?: HistoryFilter } | null;
+
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<HistoryFilter>("all");
+  const [filter, setFilter] = useState<HistoryFilter>(routeState?.filter ?? "all");
   const [sort, setSort] = useState<HistorySort>("newest");
 
   const jobs = translations.data ?? [];

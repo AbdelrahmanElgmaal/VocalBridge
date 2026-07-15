@@ -51,6 +51,17 @@ export function DashboardPage() {
   const recentMedia = useMemo(() => buildMediaItems(videoData, audioData, jobData).slice(0, 6), [audioData, jobData, videoData]);
   const recentActivity = useMemo(() => jobData.slice(0, 6), [jobData]);
   const failedJobs = useMemo(() => jobData.filter((job) => isStatus(job.status, "Failed")), [jobData]);
+  
+  const activeMediaUrl = useMemo(() => {
+    if (!activeMedia) return undefined;
+    const isCompleted = activeMedia.latestJob && isStatus(activeMedia.latestJob.status, "Completed");
+    if (isCompleted) {
+      if (activeMedia.kind === "Video" && activeMedia.latestJob?.translatedVideoUrl) return activeMedia.latestJob.translatedVideoUrl;
+      if (activeMedia.kind === "Audio" && activeMedia.latestJob?.translatedAudioUrl) return activeMedia.latestJob.translatedAudioUrl;
+    }
+    return activeMedia.url;
+  }, [activeMedia]);
+
   const loading = videos.isLoading || audios.isLoading || translations.isLoading;
 
   if (videos.isError || audios.isError || translations.isError) {
@@ -153,7 +164,7 @@ export function DashboardPage() {
                   description={`${failedJobs.length} job${failedJobs.length === 1 ? "" : "s"} need attention.`}
                   icon={<RotateCcw className="h-5 w-5" />}
                   tone="danger"
-                  onClick={() => navigate("/history")}
+                  onClick={() => navigate("/history", { state: { filter: "failed" } })}
                 />
               )}
             </div>
@@ -227,7 +238,12 @@ export function DashboardPage() {
                         </div>
                       </div>
                       <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--line)] pt-3">
-                        <Button variant="secondary" className="h-9 px-3 text-xs" onClick={() => setActiveMedia(media)} disabled={!media.url}>
+                        <Button 
+                          variant="secondary" 
+                          className="h-9 px-3 text-xs" 
+                          onClick={() => setActiveMedia(media)} 
+                          disabled={!media.url && !(media.latestJob && isStatus(media.latestJob.status, "Completed") && (media.latestJob.translatedVideoUrl || media.latestJob.translatedAudioUrl))}
+                        >
                           Preview
                         </Button>
                         <Button variant="secondary" className="h-9 px-3 text-xs" disabled={!media.latestJob} onClick={() => media.latestJob && navigate(`/translations/${media.latestJob.id}`)}>
@@ -279,13 +295,13 @@ export function DashboardPage() {
       <VideoPlayerModal
         open={Boolean(activeMedia && activeMedia.kind === "Video")}
         title={activeMedia?.fileName ?? "Video Preview"}
-        url={activeMedia?.url}
+        url={activeMediaUrl}
         onClose={() => setActiveMedia(undefined)}
       />
       <AudioPlayerModal
         open={Boolean(activeMedia && activeMedia.kind === "Audio")}
         title={activeMedia?.fileName ?? "Audio Preview"}
-        url={activeMedia?.url}
+        url={activeMediaUrl}
         onClose={() => setActiveMedia(undefined)}
       />
     </AppShell>
