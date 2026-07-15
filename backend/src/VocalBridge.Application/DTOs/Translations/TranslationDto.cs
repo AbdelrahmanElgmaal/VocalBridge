@@ -26,6 +26,7 @@ public class TranslationDto
     public DateTime? CompletedAt { get; set; }
     public bool? VoiceCloning { get; set; }
     public bool? BurnSubtitles { get; set; }
+    public bool? EnableLipsync { get; set; }
     public string? VoiceGender { get; set; }
     public string? VoiceAge { get; set; }
     public string? VoicePitch { get; set; }

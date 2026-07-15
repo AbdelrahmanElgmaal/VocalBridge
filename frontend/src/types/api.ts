@@ -56,6 +56,7 @@ export interface TranslationDto {
   completedAt?: string | null;
   voiceCloning?: boolean | null;
   burnSubtitles?: boolean | null;
+  enableLipsync?: boolean | null;
   voiceGender?: string | null;
   voiceAge?: string | null;
   voicePitch?: string | null;
@@ -71,6 +72,7 @@ export interface CreateTranslationRequest {
   inputType?: InputType;
   voiceCloning?: boolean;
   burnSubtitles?: boolean;
+  enableLipsync?: boolean;
   voiceGender?: string;
   voiceAge?: string;
   voicePitch?: string;

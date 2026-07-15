@@ -24,8 +24,8 @@ public interface IAiService
     /// <summary>Cancel a running AI job.</summary>
     Task<Result> CancelJobAsync(string aiJobId, CancellationToken ct = default);
 
-    /// <summary>Download the translated Arabic video as a stream.</summary>
-    Task<Result<Stream>> DownloadResultAsync(string aiJobId, CancellationToken ct = default);
+    /// <summary>Download the translated Arabic media as a stream.</summary>
+    Task<Result<Stream>> DownloadResultAsync(string aiJobId, bool isAudio = false, CancellationToken ct = default);
 
     /// <summary>Check if the AI service is reachable.</summary>
     Task<bool> IsHealthyAsync(CancellationToken ct = default);

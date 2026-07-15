@@ -150,7 +150,7 @@ public class TranslationService
             case "completed":
                 _logger.LogInformation("Job {JobId} completed. Downloading result...", payload.JobId);
 
-                var downloadResult = await _aiService.DownloadResultAsync(payload.JobId, ct);
+                var downloadResult = await _aiService.DownloadResultAsync(payload.JobId, job.InputType == InputType.Audio, ct);
                 if (!downloadResult.IsSuccess)
                 {
                     _logger.LogError("Failed to download result for job {JobId}: {Error}",
@@ -334,6 +334,7 @@ public class TranslationService
         {
             VoiceCloning = originalJob.VoiceCloning ?? true,
             BurnSubtitles = originalJob.BurnSubtitles ?? true,
+            EnableLipsync = originalJob.EnableLipsync,
             VoiceGender = originalJob.VoiceGender,
             VoiceAge = originalJob.VoiceAge,
             VoicePitch = originalJob.VoicePitch,
@@ -373,6 +374,7 @@ public class TranslationService
             Status = TranslationStatus.Queued,
             VoiceCloning = options?.VoiceCloning,
             BurnSubtitles = options?.BurnSubtitles,
+            EnableLipsync = options?.EnableLipsync ?? false,
             VoiceGender = options?.VoiceGender,
             VoiceAge = options?.VoiceAge,
             VoicePitch = options?.VoicePitch,

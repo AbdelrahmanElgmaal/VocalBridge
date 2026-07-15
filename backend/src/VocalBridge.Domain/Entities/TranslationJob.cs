@@ -57,6 +57,9 @@ public class TranslationJob : BaseEntity
     /// <summary>Whether subtitles were burned into the output.</summary>
     public bool? BurnSubtitles { get; set; }
 
+    /// <summary>Whether Wav2Lip lip syncing was enabled for the output.</summary>
+    public bool EnableLipsync { get; set; }
+
     /// <summary>Manual voice gender (when cloning is disabled).</summary>
     public string? VoiceGender { get; set; }
 

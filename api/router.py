@@ -78,6 +78,7 @@ async def start_dubbing(request: DubbingStartRequest):
         voice_style=request.voice_style,
         clone_speaker=request.clone_speaker,
         burn_subtitles=request.burn_subtitles,
+        enable_lipsync=request.enable_lipsync,
         webhook_url=str(request.webhook_url) if request.webhook_url else None,
     )
 

@@ -120,6 +120,7 @@ export function TranslationDetailsPage() {
   const [retryModalOpen, setRetryModalOpen] = useState(false);
   const [voiceCloning, setVoiceCloning] = useState(true);
   const [burnSubtitles, setBurnSubtitles] = useState(true);
+  const [enableLipsync, setEnableLipsync] = useState(false);
   const [voiceGender, setVoiceGender] = useState("male");
   const [voiceAge, setVoiceAge] = useState("young adult");
   const [voicePitch, setVoicePitch] = useState("moderate pitch");
@@ -129,6 +130,7 @@ export function TranslationDetailsPage() {
     if (job) {
       setVoiceCloning(job.voiceCloning ?? true);
       setBurnSubtitles(job.burnSubtitles ?? true);
+      setEnableLipsync(job.enableLipsync ?? false);
       setVoiceGender(job.voiceGender ?? "male");
       setVoiceAge(job.voiceAge ?? "young adult");
       setVoicePitch(job.voicePitch ?? "moderate pitch");
@@ -151,6 +153,7 @@ export function TranslationDetailsPage() {
       ...(!isAudio && job.video?.id ? { videoId: job.video.id } : {}),
       voiceCloning,
       burnSubtitles: isAudio ? false : burnSubtitles,
+      enableLipsync: isAudio ? false : enableLipsync,
       ...(!voiceCloning ? { voiceGender, voiceAge, voicePitch, voiceStyle } : {})
     };
 
@@ -340,7 +343,8 @@ export function TranslationDetailsPage() {
               ["Current Status", status],
               ["Current Stage", currentStage?.replace(/_/g, " ") ?? "Waiting"],
               ["Progress", `${progress}%`],
-              ["Voice Settings", voiceSummary(job)]
+              ["Voice Settings", voiceSummary(job)],
+              ...(!isAudio ? [["Lip Sync", job.enableLipsync ? "Enabled" : "Disabled"]] : [])
             ].map(([label, value]) => (
               <div key={label} className="flex items-center justify-between gap-4 rounded-lg border border-[var(--line)] bg-white/5 px-4 py-3">
                 <span className="text-[var(--muted)]">{label}</span>
@@ -490,6 +494,27 @@ export function TranslationDetailsPage() {
                 }`}
               >
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${burnSubtitles ? "translate-x-6" : "translate-x-1"}`} />
+              </button>
+            </label>
+          )}
+
+          {/* Enable Lip Sync Toggle */}
+          {!isAudio && (
+            <label className="flex cursor-pointer items-center justify-between rounded-lg border border-[var(--line)] bg-white/5 px-4 py-3 transition hover:bg-white/[0.08]">
+              <div>
+                <p className="text-sm font-semibold text-[var(--text)]">Enable Lip Sync</p>
+                <p className="mt-0.5 text-xs text-[var(--muted)]">Synchronize the translated voice with the speaker's lip movements (Wav2Lip)</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={enableLipsync}
+                onClick={() => setEnableLipsync(!enableLipsync)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                  enableLipsync ? "bg-electric" : "bg-zinc-600"
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enableLipsync ? "translate-x-6" : "translate-x-1"}`} />
               </button>
             </label>
           )}

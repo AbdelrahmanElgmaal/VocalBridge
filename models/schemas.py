@@ -18,6 +18,7 @@ class JobStatus(str, Enum):
     TRANSLATING = "translate"
     GENERATING_VOICE = "voice_generation"
     MERGING_VIDEO = "merge_video"
+    LIP_SYNCING = "lip_sync"
     COMPLETED = "completed"
     FAILED = "failed"
 
@@ -48,6 +49,15 @@ class DubbingJob(BaseModel):
     voice_pitch: Optional[str] = "moderate pitch"
     voice_style: Optional[str] = "natural"
     clone_speaker: bool = True
+
+    # Lip Sync Configuration
+    enable_lipsync: bool = False
+    lipsync_pads: str = "0 20 0 0"
+    lipsync_enhance_face: bool = True
+    lipsync_nosmooth: bool = False
+    lipsync_face_det_batch: int = 4
+    lipsync_wav2lip_batch: int = 8
+    lipsync_mel_step_size: int = 16
 
     # Pipeline data
     transcribed_text: Optional[str] = None

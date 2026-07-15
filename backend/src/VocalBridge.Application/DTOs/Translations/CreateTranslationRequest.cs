@@ -26,6 +26,9 @@ public class CreateTranslationRequest
     /// <summary>Burn translated subtitles into the output video. Default: true.</summary>
     public bool BurnSubtitles { get; set; } = true;
 
+    /// <summary>Enable Lip Sync (Wav2Lip) for the output video. Default: false.</summary>
+    public bool EnableLipsync { get; set; } = false;
+
     /// <summary>TTS voice gender when voice cloning is disabled. Values: male, female.</summary>
     public string? VoiceGender { get; set; }
 

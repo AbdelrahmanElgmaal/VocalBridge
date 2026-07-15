@@ -98,7 +98,11 @@ class VocalBridgeOrchestrator:
         # Initialize steps dynamically based on config if empty
         if not self.job.steps:
             from models.schemas import PipelineStep
-            self.job.steps = [PipelineStep(name=name) for name in self.config.stage_names]
+            stage_names = list(self.config.stage_names)
+            if not self.is_audio and getattr(self.job, 'enable_lipsync', False):
+                stage_names.append("lip_sync")
+            self.job.steps = [PipelineStep(name=name) for name in stage_names]
+            self._num_stages = len(self.job.steps)
 
     # ── Progress Helpers ─────────────────────────────────────
     async def _update_progress(self, step_idx: int, progress: float, message: str):
@@ -106,7 +110,16 @@ class VocalBridgeOrchestrator:
         step.progress = progress
         step.message = message
 
-        start, end = self.config.progress_ranges[step_idx]
+        if not self.is_audio and getattr(self.job, 'enable_lipsync', False):
+            if step_idx == 4:
+                start, end = 90, 95
+            elif step_idx == 5:
+                start, end = 95, 99
+            else:
+                start, end = self.config.progress_ranges.get(step_idx, (95, 99))
+        else:
+            start, end = self.config.progress_ranges[step_idx]
+
         self.job.overall_progress = min(start + (progress / 100) * (end - start), 100)
         self.job.current_step = step.name
 
@@ -119,7 +132,10 @@ class VocalBridgeOrchestrator:
 
         step.status = "running"
         step.started_at = datetime.utcnow()
-        self.job.status = self.config.status_map.get(idx, JobStatus.PENDING)
+        if not self.is_audio and getattr(self.job, 'enable_lipsync', False) and idx == 5:
+            self.job.status = JobStatus.LIP_SYNCING
+        else:
+            self.job.status = self.config.status_map.get(idx, JobStatus.PENDING)
         await self._update_progress(idx, 0, f"Starting {name}…")
 
         try:
@@ -223,7 +239,9 @@ class VocalBridgeOrchestrator:
                     gender=job.voice_gender,
                     age=job.voice_age,
                     pitch=job.voice_pitch,
-                    style=job.voice_style
+                    style=job.voice_style,
+                    clone_speaker=job.clone_speaker,
+                    whisper_srt_path=srt_path
                 )
                 
                 
@@ -268,6 +286,34 @@ class VocalBridgeOrchestrator:
                     raise ValueError("subtitle() produced no video output")
 
                 job.output_path = sub_result["output_path"]
+
+                # ── 5. Lip Sync (Wav2Lip) — optional stage ──
+                if getattr(job, 'enable_lipsync', False):
+                    from pipeline.lipsync import lipsync, check_wav2lip_ready
+                    if not check_wav2lip_ready():
+                        logger.warning("Wav2Lip not properly configured, skipping lip-sync")
+                        job.steps[5].status = "failed"
+                        job.steps[5].message = "Wav2Lip not configured — skipped"
+                        if self.progress_callback:
+                            await self.progress_callback(job)
+                    else:
+                        lipsync_output = str(OUTPUT_DIR / f"vocal_bridge_lipsync_{jid}.mp4")
+
+                        def run_lipsync():
+                            return lipsync(
+                                video_path=job.output_path,
+                                audio_path=voice_result["audio_path"],
+                                output_path=lipsync_output,
+                                pads=job.lipsync_pads,
+                                enhance_face=job.lipsync_enhance_face,
+                                nosmooth=job.lipsync_nosmooth,
+                                face_det_batch_size=job.lipsync_face_det_batch,
+                                wav2lip_batch_size=job.lipsync_wav2lip_batch,
+                                mel_step_size=job.lipsync_mel_step_size,
+                            )
+
+                        ls_result = await self._run_stage(5, "lip_sync", run_lipsync)
+                        job.output_path = ls_result["output_path"]
             ###################################################################
 
             job.status = JobStatus.COMPLETED
@@ -294,7 +340,11 @@ class VocalBridgeOrchestrator:
 
         finally:
             try:
-                cleanup_job_temp(jid)
-                logger.info(f"🧹 Temp files cleaned up for job {jid}")
+                import config
+                if config.CLEANUP_TEMP_FILES:
+                    cleanup_job_temp(jid)
+                    logger.info(f"🧹 Temp files cleaned up for job {jid}")
+                else:
+                    logger.info(f"🧹 Temp files cleanup skipped for job {jid} (configured to keep)")
             except Exception as ce:
                 logger.warning(f"Cleanup failed: {ce}")

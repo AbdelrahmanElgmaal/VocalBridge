@@ -182,6 +182,7 @@ class JobManager:
         voice_style: Optional[str] = None,
         clone_speaker: bool = True,
         burn_subtitles: bool = True,
+        enable_lipsync: bool = False,
         webhook_url: Optional[str] = None,
     ) -> str:
         """
@@ -201,6 +202,7 @@ class JobManager:
             voice_pitch=voice_pitch,
             voice_style=voice_style,
             clone_speaker=clone_speaker,
+            enable_lipsync=enable_lipsync,
         )
         job_id = job.job_id
 

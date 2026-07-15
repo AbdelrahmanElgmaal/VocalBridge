@@ -48,11 +48,11 @@ def subtitle(video_path: str, audio_path: str, srt_path: str, output_path: str, 
         safe_srt_path = safe_srt_path.replace(":", "\\:")
         
         cmd.extend([
-            "-filter_complex", f"subtitles='{safe_srt_path}'",
+            "-filter_complex", f"[0:v]subtitles='{safe_srt_path}'[v]",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
             "-c:a", "aac",
-            "-map", "0:v:0",
+            "-map", "[v]",
             "-map", "1:a:0"
         ])
     else:

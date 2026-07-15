@@ -47,6 +47,7 @@ export function CreateTranslationPage() {
   // Voice settings state
   const [voiceCloning, setVoiceCloning] = useState(true);
   const [burnSubtitles, setBurnSubtitles] = useState(true);
+  const [enableLipsync, setEnableLipsync] = useState(false);
   const [voiceGender, setVoiceGender] = useState("male");
   const [voiceAge, setVoiceAge] = useState("young adult");
   const [voicePitch, setVoicePitch] = useState("moderate pitch");
@@ -256,6 +257,7 @@ export function CreateTranslationPage() {
     const voiceOptions = {
       voiceCloning,
       burnSubtitles,
+      enableLipsync: tab === "audio" ? false : enableLipsync,
       ...(!voiceCloning ? { voiceGender, voiceAge, voicePitch, voiceStyle } : {}),
     };
 
@@ -587,6 +589,27 @@ export function CreateTranslationPage() {
                     }`}
                   >
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${burnSubtitles ? "translate-x-6" : "translate-x-1"}`} />
+                  </button>
+                </label>
+              )}
+
+              {/* Enable Lip Sync Toggle */}
+              {tab !== "audio" && (
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-[var(--line)] bg-white/5 px-4 py-3 transition hover:bg-white/[0.08]">
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--text)]">Enable Lip Sync</p>
+                    <p className="mt-0.5 text-xs text-[var(--muted)]">Synchronize the translated voice with the speaker's lip movements (Wav2Lip)</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={enableLipsync}
+                    onClick={() => setEnableLipsync(!enableLipsync)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                      enableLipsync ? "bg-electric" : "bg-zinc-600"
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enableLipsync ? "translate-x-6" : "translate-x-1"}`} />
                   </button>
                 </label>
               )}

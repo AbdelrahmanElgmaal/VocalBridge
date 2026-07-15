@@ -46,11 +46,13 @@ public class AiDubbingService : IAiService
             var payload = new Dictionary<string, object?>
             {
                 ["video_url"] = videoUrl,
+                ["input_type"] = options?.InputType.ToString().ToLower() ?? "video",
                 ["target_language"] = "ar",
                 ["source_language"] = "en",
                 ["webhook_url"] = webhookUrl ?? _settings.WebhookCallbackUrl,
                 ["clone_speaker"] = options?.VoiceCloning ?? true,
                 ["burn_subtitles"] = options?.BurnSubtitles ?? true,
+                ["enable_lipsync"] = options?.EnableLipsync ?? false,
             };
 
             // Only send manual voice config when voice cloning is OFF
@@ -136,14 +138,15 @@ public class AiDubbingService : IAiService
         }
     }
 
-    public async Task<Result<Stream>> DownloadResultAsync(string aiJobId, CancellationToken ct = default)
+    public async Task<Result<Stream>> DownloadResultAsync(string aiJobId, bool isAudio = false, CancellationToken ct = default)
     {
         try
         {
             _logger.LogInformation("Downloading translated video for AI job {AiJobId}", aiJobId);
 
+            var ext = isAudio ? "wav" : "mp4";
             var response = await _http.GetAsync(
-                $"/api/dubbing/download/{aiJobId}.mp4",
+                $"/api/dubbing/download/{aiJobId}.{ext}",
                 HttpCompletionOption.ResponseHeadersRead, ct);
 
             if (!response.IsSuccessStatusCode)

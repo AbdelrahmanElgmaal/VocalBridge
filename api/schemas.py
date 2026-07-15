@@ -81,6 +81,10 @@ class DubbingStartRequest(BaseModel):
         default=True,
         description="Burn translated subtitles into the output video.",
     )
+    enable_lipsync: bool = Field(
+        default=False,
+        description="Synchronize the translated voice with the speaker's lip movements.",
+    )
     webhook_url: Optional[HttpUrl] = Field(
         default=None,
         description=(
