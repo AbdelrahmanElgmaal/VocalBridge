@@ -112,6 +112,7 @@ class JobManager:
         self._ensure_column("current_stage", "TEXT")
         self._ensure_column("transcript", "TEXT")
         self._ensure_column("translated_text", "TEXT")
+        self._ensure_column("output_path", "TEXT")
 
     def _ensure_column(self, name: str, column_type: str) -> None:
         """Add a nullable column to existing SQLite databases."""
@@ -399,6 +400,7 @@ class JobManager:
                 current_stage=raw,
                 transcript=resolved_transcript,
                 translated_text=updated_job.translated_text,
+                output_path=updated_job.output_path,
             )
 
             transcript_changed = resolved_transcript != last_transcript
@@ -439,6 +441,7 @@ class JobManager:
                 current_stage="completed",
                 transcript=job.transcript or job.transcribed_text,
                 translated_text=job.translated_text,
+                output_path=job.output_path,
             )
             logger.info(
                 f"✅ Job {job_id} completed → {download_url}"

@@ -253,17 +253,28 @@ async def download_result(filename: str):
             detail=f"Job {job_id} is not completed (current status: {row['status']})."
         )
 
-    from config import OUTPUT_DIR
+    output_path = None
     
-    # Try multiple possible extensions
-    output_path = OUTPUT_DIR / f"vocal_bridge_{job_id}.mp4"
-    if not output_path.exists():
-        output_path = OUTPUT_DIR / f"vocal_bridge_{job_id}.wav"
+    # Try reading the exact output path saved in the database
+    output_path_str = row.get("output_path")
+    if output_path_str:
+        candidate_path = Path(output_path_str)
+        if candidate_path.exists():
+            output_path = candidate_path
+
+    if not output_path:
+        from config import OUTPUT_DIR
+        # Fallback heuristics
+        output_path = OUTPUT_DIR / f"vocal_bridge_lipsync_{job_id}.mp4"
         if not output_path.exists():
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Output file for job {job_id} not found on disk."
-            )
+            output_path = OUTPUT_DIR / f"vocal_bridge_{job_id}.mp4"
+            if not output_path.exists():
+                output_path = OUTPUT_DIR / f"vocal_bridge_{job_id}.wav"
+                if not output_path.exists():
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Output file for job {job_id} not found on disk."
+                    )
 
     return FileResponse(
         path=str(output_path),
