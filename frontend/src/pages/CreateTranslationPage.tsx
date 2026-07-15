@@ -89,9 +89,10 @@ export function CreateTranslationPage() {
     if (recordingStatus === "recording") {
       interval = setInterval(() => {
         setRecordingTime(t => {
-          if (t >= 24) {
+          if (t >= 59) {
             stopRecording();
-            return 25;
+            toast({ tone: "info", title: "Recording Stopped", description: "Maximum recording time is 60 seconds." });
+            return 60;
           }
           return t + 1;
         });
