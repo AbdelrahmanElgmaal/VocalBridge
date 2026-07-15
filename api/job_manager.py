@@ -202,6 +202,7 @@ class JobManager:
             voice_pitch=voice_pitch,
             voice_style=voice_style,
             clone_speaker=clone_speaker,
+            burn_subtitles=burn_subtitles,
             enable_lipsync=enable_lipsync,
         )
         job_id = job.job_id
