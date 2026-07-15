@@ -49,6 +49,7 @@ class DubbingJob(BaseModel):
     voice_pitch: Optional[str] = "moderate pitch"
     voice_style: Optional[str] = "natural"
     clone_speaker: bool = True
+    burn_subtitles: bool = True
 
     # Lip Sync Configuration
     enable_lipsync: bool = False
